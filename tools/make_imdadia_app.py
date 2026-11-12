@@ -17,7 +17,37 @@ DST = os.path.join(ROOT, "Hafizi_Imdadia_Quran.html")
 CSS = """
 <style>
 /* ===== Hafizi Imdadia look (black and white print) ===== */
-body.imdonly{background:#e6e6e1;--page-w:min(100%, 920px, calc((100dvh - 150px) / 1.68))}
+body.imdonly{background:#e6e6e1;padding:0 8px 8px;--page-w:min(100%, calc((100dvh - 62px) / 1.68))}
+body.imdonly.imdwide{--page-w:min(100%, 1100px)}
+/* slim top bar: page navigation, surah, juz, zoom, settings */
+#imdTop{position:sticky;top:0;z-index:55;align-self:stretch;margin:0 -8px 8px;height:46px;box-sizing:border-box;padding:0 10px;display:flex;justify-content:center;align-items:center;gap:10px;
+  background:#17493a;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+#imdTop>div{display:flex;align-items:center;gap:6px}
+#imdTop button{background:#2b6d58;padding:6px 12px;font-size:15px;border-radius:7px}
+#imdTop button:hover{background:#3a8a70}
+#imdTop input[type=number]{width:62px;padding:5px;border:0;border-radius:6px;font-size:15px;text-align:center}
+#imdTop select{padding:5px;border:0;border-radius:6px;font-size:14px;max-width:150px}
+#imdTop #ptot{font-size:14px;opacity:.85}
+#imdTop .sp{flex:1}
+#imdTop .ttl{font-size:15px;font-weight:600;white-space:nowrap;opacity:.95}
+@media (max-width:760px){#imdTop .ttl{display:none}#imdTop{gap:6px;padding:0 6px}#imdTop select{max-width:96px}}
+/* settings drawer (the old tool bar) */
+.imdonly .bar{position:fixed;top:54px;right:8px;z-index:70;width:290px;max-height:calc(100dvh - 70px);overflow:auto;margin:0;box-sizing:border-box;padding:12px 14px;display:none;flex-direction:column;align-items:stretch;gap:10px;
+  background:#fff;border:1px solid #c9c9c0;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.28)}
+.imdonly .bar.open{display:flex}
+.imdonly .bar>div{display:flex;flex-direction:column;align-items:stretch;gap:8px}
+.imdonly .bar h3{margin:0;font-size:15px;color:#17493a}
+.imdonly .bar label{justify-content:flex-start;gap:8px}
+.imdonly .bar select{max-width:none;flex:1}
+.imdonly .bar button{width:100%}
+.imdonly #fstat{width:auto;margin:0;text-align:left;font-size:12px}
+.imdonly #guide{position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:80;max-height:calc(100dvh - 90px);overflow:auto;box-shadow:0 10px 30px rgba(0,0,0,.3)}
+/* large page-turn arrows at the sides of the window */
+.imdnav{position:fixed;top:50%;transform:translateY(-50%);z-index:40;width:46px;height:96px;padding:0;border-radius:10px;font-size:30px;background:rgba(23,73,58,.16);color:#17493a}
+.imdnav:hover{background:rgba(23,73,58,.34)}
+#imdNavL{left:10px}#imdNavR{right:10px}
+body.imdchk #imdNavL{left:calc(44vw + 14px)}
+@media (max-width:760px){.imdnav{display:none}}
 .imdonly .hint,.imdonly .credit{display:none}
 /* frame as in the print: thin rule inside, heavy rule outside */
 .imdonly .tahfiz .frame,.imdonly .frame{padding:0;border:.22cqw solid #111;background:#fff;box-shadow:0 0 0 .32cqw #fff, 0 0 0 1cqw #111}
@@ -228,6 +258,40 @@ JS = r"""
   fit = function(){ _fit(); openFit(); juzBig(); signSpace(); marks(); };
   var _lp = loadPage;
   loadPage = function(n){ _lp(n); skin(); openFit(); juzBig(); signSpace(); marks(); };
+
+  /* ---- layout of the controls: slim top bar, settings drawer, side arrows ---- */
+  (function(){
+    var bar = document.querySelector(".bar"), top = document.createElement("div"), mk = function(tag, id, html, title){
+      var e = document.createElement(tag); if (id) e.id = id; e.innerHTML = html; if (title) e.title = title; if (tag === "button") e.type = "button"; return e; };
+    top.id = "imdTop";
+    var nav = bar.children[0], sel = bar.children[1];
+    top.appendChild(mk("span", "", "Hafizi Imdadia Quran")).className = "ttl";
+    top.appendChild(mk("span", "", "")).className = "sp";
+    top.appendChild(nav); top.appendChild(sel);
+    top.appendChild(mk("span", "", "")).className = "sp";
+    var zb = top.appendChild(mk("button", "imdZoom", "", "Switch between whole page and large page"));
+    var sb = top.appendChild(mk("button", "imdSet", "⚙ Settings", "Font, display and translation options"));
+    document.body.insertBefore(top, document.body.firstChild);
+    bar.insertBefore(mk("h3", "", "Settings"), bar.firstChild);
+    bar.appendChild($("fstat"));
+    [].forEach.call(bar.children, function(d){          // rows whose controls are all switched off
+      if (d.tagName !== "DIV") return;
+      var vis = [].some.call(d.children, function(c){ return c.style.display !== "none" && c.type !== "file"; });
+      if (!vis) d.style.display = "none";
+    });
+    sb.onclick = function(ev){ ev.stopPropagation(); bar.classList.toggle("open"); };
+    bar.addEventListener("click", function(ev){ ev.stopPropagation(); });
+    document.addEventListener("click", function(){ bar.classList.remove("open"); $("guide").classList.remove("open"); });
+    $("gdk").addEventListener("click", function(ev){ ev.stopPropagation(); bar.classList.remove("open"); });
+    $("guide").addEventListener("click", function(ev){ ev.stopPropagation(); });
+    var wide = load("imdWide") === "1";
+    function zoom(){ document.body.classList.toggle("imdwide", wide); zb.textContent = wide ? "⤡ Whole page" : "⤢ Large page"; }
+    zoom();
+    zb.onclick = function(){ wide = !wide; store("imdWide", wide ? "1" : "0"); zoom(); var cp = curPage; anchorTok = null; relayout(); if (curPage !== cp) loadPage(cp); };
+    var L = document.body.appendChild(mk("button", "imdNavL", "‹", "Next page")), R = document.body.appendChild(mk("button", "imdNavR", "›", "Previous page"));
+    L.className = R.className = "imdnav";
+    L.onclick = nextPage; R.onclick = prevPage;
+  })();
 })();
 </script>
 """
