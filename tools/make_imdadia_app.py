@@ -85,7 +85,9 @@ body.imdchk #imdNavL{left:calc(44vw + 14px)}
 .imdonly .book.imdopen .imdsur>span{border:0;background:none;padding:0;line-height:1.2}
 .imdonly .book.imdopen .basmala,.imdonly .book.imdopen .line.imdbism{flex:1 1 0;height:auto;justify-content:center;border-bottom:1.3px solid #222}
 /* the first line of every juz is printed heavier */
-.imdonly .book .line.juzbold{-webkit-text-stroke:1.5px currentColor;paint-order:stroke fill}
+/* weight of the text is a setting (--imdbold); the first line of a juz is always heavier than the rest */
+.imdonly .book.bold .line,.imdonly .book.bold .surahline,.imdonly .book.bold .basmala{-webkit-text-stroke:var(--imdbold,.8px) currentColor;paint-order:stroke fill}
+.imdonly .book .line.juzbold{-webkit-text-stroke:calc(var(--imdbold,.8px) + .8px) currentColor;paint-order:stroke fill}
 .imdonly .surahline.imdsur{justify-content:space-between;margin:.1em 1cqw;padding:0 1.9em;font-size:.56em;
   background:repeating-linear-gradient(45deg,#fff 0 .22em,#e4e4e4 .22em .3em)}
 .imdonly .imdsur>span{background:#fff;padding:.15em .6em;border:1px solid #111;border-radius:1em;line-height:1.5;white-space:nowrap}
@@ -101,7 +103,7 @@ JS = r"""
 /* ===== Hafizi Imdadia only: fixed layout, print look ===== */
 (function(){
   document.body.classList.add("imdonly");
-  ["ln","sz","cpara","csur","cfat","cbaq","ctf","ctj","cgl"].forEach(function(id){
+  ["ln","sz","cpara","csur","cfat","cbaq","ctf","ctj","cgl","cbold"].forEach(function(id){
     var e = $(id), l = e && e.closest("label"); if (l) l.style.display = "none";
   });
   if ($("tjk")) $("tjk").style.display = "none";
@@ -254,10 +256,33 @@ JS = r"""
       if (!pick) edges[0].appendChild(el);
     });
   }
+  /* "Fill lines": every line is set as large as its own words allow (never wider than the line, never taller than the row) */
+  window.IMD_OPT = { fill: load("imdFill") !== "0" };
+  function lineFill(){
+    if (!window.IMD_OPT.fill || curPage <= 2) return;
+    var rows = root.querySelectorAll(".line"), base = parseFloat(root.style.fontSize) || 0, i;
+    if (!base) return;
+    for (i = 0; i < rows.length; i++) {
+      var r = rows[i];
+      if (r.classList.contains("juzbold")) continue;
+      var fs = Math.min(base * 1.3, r.clientHeight / 1.22), tries = 0;
+      if (fs <= base) continue;
+      r.style.fontSize = fs + "px";
+      while (r.scrollWidth > r.clientWidth + 0.5 && tries++ < 6) { fs = Math.max(base, fs * r.clientWidth / r.scrollWidth * 0.995); r.style.fontSize = fs + "px"; if (fs === base) break; }
+    }
+  }
+  function safety(){                              // last word: no line may ever be wider than its row
+    var rows = root.querySelectorAll(".line"), i, moved = false;
+    for (i = 0; i < rows.length; i++) {
+      var r = rows[i], tries = 0, fs = parseFloat(getComputedStyle(r).fontSize);
+      while (r.scrollWidth > r.clientWidth && tries++ < 12) { fs = fs * Math.min(0.995, r.clientWidth / r.scrollWidth * 0.997); r.style.fontSize = fs + "px"; moved = true; }
+    }
+    if (moved) placeSigns();
+  }
   var _fit = fit;
-  fit = function(){ _fit(); openFit(); juzBig(); signSpace(); marks(); };
+  fit = function(){ _fit(); openFit(); lineFill(); juzBig(); signSpace(); safety(); marks(); };
   var _lp = loadPage;
-  loadPage = function(n){ _lp(n); skin(); openFit(); juzBig(); signSpace(); marks(); };
+  loadPage = function(n){ _lp(n); skin(); openFit(); lineFill(); juzBig(); signSpace(); safety(); marks(); };
 
   /* ---- layout of the controls: slim top bar, settings drawer, side arrows ---- */
   (function(){
@@ -316,7 +341,7 @@ def main():
     s = rep(s, 'load("nuraniBnNum2") !== "0"', 'load("imdadiaBnNum") === "1"')
     s = s.replace("nuraniBnNum2", "imdadiaBnNum")
     s = rep(s, "function saveCfg(){",
-            "CFG.hafezi = true; CFG.imd = true; CFG.tahfiz = true; CFG.tj = false; CFG.glyphMark = false;\nfunction saveCfg(){")
+            "CFG.hafezi = true; CFG.imd = true; CFG.tahfiz = true; CFG.tj = false; CFG.bold = true; CFG.glyphMark = false;\nfunction saveCfg(){")
     s = rep(s, '<script src="data/imdadia_lines.js"></script>',
             '<script src="data/imdadia_lines.js"></script><script src="data/imdadia_marks.js"></script>')
     # Bangla translation of this book: Muhiuddin Khan (no footnotes), not the Tahfiz book's one

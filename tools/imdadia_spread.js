@@ -8,7 +8,7 @@
   book.parentNode.insertBefore(wrap, book);
   wrap.appendChild(book);
 
-  var optSpread = load("imdSpreadOn") === "1", optAnim = load("imdAnim") !== "0";
+  var optSpread = load("imdSpreadOn") !== "0", optAnim = load("imdAnim") !== "0";
   var snap = null, busy = false, animating = false;
 
   function active(){ return optSpread && !document.body.classList.contains("imdchk"); }
@@ -95,7 +95,15 @@
   var bar = document.querySelector(".bar"), row = document.createElement("div");
   row.innerHTML = "<label>View <select id='imdView'><option value='0'>One page</option><option value='1'>Two pages (open book)</option></select></label>" +
                   "<label><input type='checkbox' id='imdAnimBox'> Page-turn animation</label>";
+  row.innerHTML += "<label>Text size <select id='imdFillSel'><option value='1'>Largest (fill each line)</option><option value='0'>Even (same size on the page)</option></select></label>" +
+                   "<label>Weight <select id='imdBoldSel'><option value='0'>Light</option><option value='.5'>Normal</option><option value='.8'>Bold</option><option value='1.2'>Extra bold</option><option value='1.6'>Heaviest</option></select></label>";
   bar.insertBefore(row, bar.children[1] || null);
+  var boldV = load("imdBold") || ".8";
+  function setBold(){ document.body.style.setProperty("--imdbold", boldV + "px"); }
+  setBold();
+  $("imdBoldSel").value = boldV; $("imdFillSel").value = window.IMD_OPT.fill ? "1" : "0";
+  $("imdBoldSel").onchange = function(){ boldV = this.value; store("imdBold", boldV); setBold(); };
+  $("imdFillSel").onchange = function(){ window.IMD_OPT.fill = this.value === "1"; store("imdFill", this.value); refresh(); };
   $("imdView").value = optSpread ? "1" : "0"; $("imdAnimBox").checked = optAnim;
   function refresh(){ var cp = curPage; anchorTok = null; loadPage(cp); relayout(); if (curPage !== cp) loadPage(cp); }
   $("imdView").onchange = function(){ optSpread = this.value === "1"; store("imdSpreadOn", optSpread ? "1" : "0"); refresh(); };

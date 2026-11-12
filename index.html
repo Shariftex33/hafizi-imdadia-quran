@@ -240,7 +240,9 @@ body.imdchk #imdNavL{left:calc(44vw + 14px)}
 .imdonly .book.imdopen .imdsur>span{border:0;background:none;padding:0;line-height:1.2}
 .imdonly .book.imdopen .basmala,.imdonly .book.imdopen .line.imdbism{flex:1 1 0;height:auto;justify-content:center;border-bottom:1.3px solid #222}
 /* the first line of every juz is printed heavier */
-.imdonly .book .line.juzbold{-webkit-text-stroke:1.5px currentColor;paint-order:stroke fill}
+/* weight of the text is a setting (--imdbold); the first line of a juz is always heavier than the rest */
+.imdonly .book.bold .line,.imdonly .book.bold .surahline,.imdonly .book.bold .basmala{-webkit-text-stroke:var(--imdbold,.8px) currentColor;paint-order:stroke fill}
+.imdonly .book .line.juzbold{-webkit-text-stroke:calc(var(--imdbold,.8px) + .8px) currentColor;paint-order:stroke fill}
 .imdonly .surahline.imdsur{justify-content:space-between;margin:.1em 1cqw;padding:0 1.9em;font-size:.56em;
   background:repeating-linear-gradient(45deg,#fff 0 .22em,#e4e4e4 .22em .3em)}
 .imdonly .imdsur>span{background:#fff;padding:.15em .6em;border:1px solid #111;border-radius:1em;line-height:1.5;white-space:nowrap}
@@ -408,7 +410,7 @@ var CFG = { n:13, size:"normal", font:"alqalam4", paraNew:true, surahNew:false, 
 try { var _c = JSON.parse(load("imdadiaCfg2") || "{}"); for (var _k in _c) if (_k in CFG) CFG[_k] = _c[_k]; } catch(e){}
 // ?font=nurani9 / ?n=14 in the URL override the saved choice (handy for side-by-side testing)
 try { var _u = new URLSearchParams(location.search); if (_u.get("font")) CFG.font = _u.get("font"); if (+_u.get("n")) CFG.n = +_u.get("n"); if (_u.get("n") === "I15") { CFG.hafezi = true; CFG.imd = true; } if (_u.get("n") === "H15") { CFG.hafezi = true; CFG.imd = false; } } catch(e){}
-CFG.hafezi = true; CFG.imd = true; CFG.tahfiz = true; CFG.tj = false; CFG.glyphMark = false;
+CFG.hafezi = true; CFG.imd = true; CFG.tahfiz = true; CFG.tj = false; CFG.bold = true; CFG.glyphMark = false;
 function saveCfg(){ store("imdadiaCfg2", JSON.stringify(CFG)); }
 
 /* =====================================================================
@@ -1485,7 +1487,7 @@ body.imdchk{padding-left:calc(44vw + 8px)}
 /* ===== Hafizi Imdadia only: fixed layout, print look ===== */
 (function(){
   document.body.classList.add("imdonly");
-  ["ln","sz","cpara","csur","cfat","cbaq","ctf","ctj","cgl"].forEach(function(id){
+  ["ln","sz","cpara","csur","cfat","cbaq","ctf","ctj","cgl","cbold"].forEach(function(id){
     var e = $(id), l = e && e.closest("label"); if (l) l.style.display = "none";
   });
   if ($("tjk")) $("tjk").style.display = "none";
@@ -1638,10 +1640,33 @@ body.imdchk{padding-left:calc(44vw + 8px)}
       if (!pick) edges[0].appendChild(el);
     });
   }
+  /* "Fill lines": every line is set as large as its own words allow (never wider than the line, never taller than the row) */
+  window.IMD_OPT = { fill: load("imdFill") !== "0" };
+  function lineFill(){
+    if (!window.IMD_OPT.fill || curPage <= 2) return;
+    var rows = root.querySelectorAll(".line"), base = parseFloat(root.style.fontSize) || 0, i;
+    if (!base) return;
+    for (i = 0; i < rows.length; i++) {
+      var r = rows[i];
+      if (r.classList.contains("juzbold")) continue;
+      var fs = Math.min(base * 1.3, r.clientHeight / 1.22), tries = 0;
+      if (fs <= base) continue;
+      r.style.fontSize = fs + "px";
+      while (r.scrollWidth > r.clientWidth + 0.5 && tries++ < 6) { fs = Math.max(base, fs * r.clientWidth / r.scrollWidth * 0.995); r.style.fontSize = fs + "px"; if (fs === base) break; }
+    }
+  }
+  function safety(){                              // last word: no line may ever be wider than its row
+    var rows = root.querySelectorAll(".line"), i, moved = false;
+    for (i = 0; i < rows.length; i++) {
+      var r = rows[i], tries = 0, fs = parseFloat(getComputedStyle(r).fontSize);
+      while (r.scrollWidth > r.clientWidth && tries++ < 12) { fs = fs * Math.min(0.995, r.clientWidth / r.scrollWidth * 0.997); r.style.fontSize = fs + "px"; moved = true; }
+    }
+    if (moved) placeSigns();
+  }
   var _fit = fit;
-  fit = function(){ _fit(); openFit(); juzBig(); signSpace(); marks(); };
+  fit = function(){ _fit(); openFit(); lineFill(); juzBig(); signSpace(); safety(); marks(); };
   var _lp = loadPage;
-  loadPage = function(n){ _lp(n); skin(); openFit(); juzBig(); signSpace(); marks(); };
+  loadPage = function(n){ _lp(n); skin(); openFit(); lineFill(); juzBig(); signSpace(); safety(); marks(); };
 
   /* ---- layout of the controls: slim top bar, settings drawer, side arrows ---- */
   (function(){
@@ -1689,7 +1714,7 @@ body.imdchk{padding-left:calc(44vw + 8px)}
   book.parentNode.insertBefore(wrap, book);
   wrap.appendChild(book);
 
-  var optSpread = load("imdSpreadOn") === "1", optAnim = load("imdAnim") !== "0";
+  var optSpread = load("imdSpreadOn") !== "0", optAnim = load("imdAnim") !== "0";
   var snap = null, busy = false, animating = false;
 
   function active(){ return optSpread && !document.body.classList.contains("imdchk"); }
@@ -1776,7 +1801,15 @@ body.imdchk{padding-left:calc(44vw + 8px)}
   var bar = document.querySelector(".bar"), row = document.createElement("div");
   row.innerHTML = "<label>View <select id='imdView'><option value='0'>One page</option><option value='1'>Two pages (open book)</option></select></label>" +
                   "<label><input type='checkbox' id='imdAnimBox'> Page-turn animation</label>";
+  row.innerHTML += "<label>Text size <select id='imdFillSel'><option value='1'>Largest (fill each line)</option><option value='0'>Even (same size on the page)</option></select></label>" +
+                   "<label>Weight <select id='imdBoldSel'><option value='0'>Light</option><option value='.5'>Normal</option><option value='.8'>Bold</option><option value='1.2'>Extra bold</option><option value='1.6'>Heaviest</option></select></label>";
   bar.insertBefore(row, bar.children[1] || null);
+  var boldV = load("imdBold") || ".8";
+  function setBold(){ document.body.style.setProperty("--imdbold", boldV + "px"); }
+  setBold();
+  $("imdBoldSel").value = boldV; $("imdFillSel").value = window.IMD_OPT.fill ? "1" : "0";
+  $("imdBoldSel").onchange = function(){ boldV = this.value; store("imdBold", boldV); setBold(); };
+  $("imdFillSel").onchange = function(){ window.IMD_OPT.fill = this.value === "1"; store("imdFill", this.value); refresh(); };
   $("imdView").value = optSpread ? "1" : "0"; $("imdAnimBox").checked = optAnim;
   function refresh(){ var cp = curPage; anchorTok = null; loadPage(cp); relayout(); if (curPage !== cp) loadPage(cp); }
   $("imdView").onchange = function(){ optSpread = this.value === "1"; store("imdSpreadOn", optSpread ? "1" : "0"); refresh(); };
