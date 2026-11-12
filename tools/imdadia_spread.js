@@ -97,7 +97,12 @@
                   "<label><input type='checkbox' id='imdAnimBox'> Page-turn animation</label>";
   row.innerHTML += "<label>Text size <select id='imdFillSel'><option value='1'>Largest (fill each line)</option><option value='0'>Even (same size on the page)</option></select></label>" +
                    "<label>Weight <select id='imdBoldSel'><option value='0'>Light</option><option value='.5'>Normal</option><option value='.8'>Bold</option><option value='1.2'>Extra bold</option><option value='1.6'>Heaviest</option></select></label>";
+  row.innerHTML += "<label><input type='checkbox' id='imdMtBox'> Show mutashabihat (colours and margin references)</label>";
   bar.insertBefore(row, bar.children[1] || null);
+  var mtOn = load("imdMt") !== "0";
+  document.body.classList.toggle("imdnomt", !mtOn);
+  $("imdMtBox").checked = mtOn;
+  $("imdMtBox").onchange = function(){ mtOn = this.checked; store("imdMt", mtOn ? "1" : "0"); document.body.classList.toggle("imdnomt", !mtOn); refresh(); };
   var boldV = load("imdBold") || ".8";
   function setBold(){ document.body.style.setProperty("--imdbold", boldV + "px"); }
   setBold();

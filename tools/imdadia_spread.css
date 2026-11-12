@@ -7,3 +7,6 @@ body.imdspread #imdSpread .book.snap{cursor:pointer}
 body.imdspread #imdZoom{display:none}
 .imdflip{position:absolute;margin:0;pointer-events:none;backface-visibility:hidden;will-change:transform}
 @media (max-width:760px){body.imdonly.imdspread{--page-w:calc((100vw - 20px) / 2)}}
+/* ===== option: hide the mutashabihat marks ===== */
+body.imdnomt .tahfiz .mt-b,body.imdnomt .tahfiz .mt-g{color:inherit}
+body.imdnomt .mtm,body.imdnomt .mn{display:none}
