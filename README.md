@@ -12,7 +12,7 @@ Open `index.html` in a browser. Nothing needs to be installed.
 - Surah headings with ayat and ruku counts, ruku marks, sajdah marks, waqf signs.
 - Juz start (heavier, larger first line) and the quarter, half and three-quarter marks of each juz in the margin.
 - Mutashabihat (repeated phrases) in colour, with cross-references in the margin.
-- Tap a word or an ayah circle for the meaning (English and Bangla).
+- Tap a word for its meaning, or an ayah circle for the translation of the ayah (English: Saheeh International; Bangla: Muhiuddin Khan).
 - Font: Al Qalam Quran Majeed 4. Another font can be chosen or uploaded from the toolbar.
 
 Page numbers: the box in the toolbar counts from 1; the number printed in the page header is one higher, as in the print.
@@ -45,6 +45,6 @@ found in the scan; where the print leaves a lone "و" at the end of a line, the 
 ## Sources
 
 - Text and waqf signs: Quranic Universal Library (QUL), Indo-Pak script.
-- Translations: English – Saheeh International; Bangla – Dr. Abu Bakr Muhammad Zakaria (QuranEnc.com).
+- Translations: English – Saheeh International (QuranEnc.com); Bangla – Maulana Muhiuddin Khan, from Tanzil.net (tanzil.net/trans, text unchanged).
 - Word meanings: English – Quran.com; Bangla – Greentech Apps Foundation / QuranWBW.
 - Line structure: Hafezi Quran, Emdadia Library (15 lines).

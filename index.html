@@ -317,7 +317,7 @@ body.imdonly{background:#e6e6e1;--page-w:min(100%, 920px, calc((100dvh - 150px) 
   </div>
 </div>
 <div class="hint">Tap a word or an ayah-end circle to see its meaning. Arrow keys: ← next page, → previous page. Fonts are looked up in <code>fonts/</code> (NuraniDraft_v9.ttf, NuraniDraft_v8.ttf, NotoNaskhArabic-Regular.ttf, optional Amiri-Regular.ttf).</div>
-<div class="credit">Text and waqf signs: Quranic Universal Library (QUL) – “Indopak Nastaleeq script”; the page lines are re-flowed here for a Nurani-style 12–16 line layout. Translations: English – Saheeh International; Bangla – Dr. Abu Bakr Muhammad Zakaria, from <a href="https://quranenc.com">QuranEnc.com</a>. Word meanings: English (Quran.com); Bangla (Greentech Apps Foundation / QuranWBW).</div>
+<div class="credit">Text and waqf signs: Quranic Universal Library (QUL) – “Indopak Nastaleeq script”; the page lines are re-flowed here for a Nurani-style 12–16 line layout. Translations: English – Saheeh International; Bangla – Maulana Muhiuddin Khan (Tanzil.net); English from <a href="https://quranenc.com">QuranEnc.com</a>. Word meanings: English (Quran.com); Bangla (Greentech Apps Foundation / QuranWBW).</div>
 
 <script>var TR = { en: {}, bn: {} }, WTR = { en: {}, bn: {} }, FN = { en: {}, bn: {} }, OVR = {};</script>
 <script src="data/pages.js"></script>
@@ -333,7 +333,7 @@ var IMD_STATE = { pages:{}, ok:{} };
   if (typeof IMD !== "undefined") for (var p in IMD_STATE.pages) IMD[p] = IMD_STATE.pages[p].slice();
 })();</script>
 <script src="data/tr_en.js"></script>
-<script src="data/tr_bn.js"></script>
+<script src="data/tr_bn_khan.js"></script>
 <script src="data/wbw_en.js"></script>
 <script src="data/wbw_bn.js"></script>
 <script src="data/overrides.js"></script>
@@ -1143,7 +1143,7 @@ function line(label, cls, txt){
   return "<div style='margin-top:6px'><b>" + label + ":</b> " + (txt ? "<span class='" + cls + "'>" + esc(txt) + "</span>" : "<span class='none'>not added yet</span>") + "</div>";
 }
 function fnBlock(lang, key){ var t = FN[lang][key]; return t ? "<div class='fn'>" + esc(t).replace(/\n/g, "<br>") + "</div>" : ""; }
-function ensureFN(lang){
+function ensureFN(lang){ if (lang === "bn") return;
   if (fnLoaded[lang]) return; fnLoaded[lang] = true;
   var sc = document.createElement("script"); sc.src = "data/fn_" + lang + ".js"; sc.onload = render; document.head.appendChild(sc);
 }
@@ -1158,7 +1158,7 @@ function render(){
     if (en) h += line("Meaning – English", "", m && m[0]);
     if (bn2) h += line("অর্থ – বাংলা", "bn", WTR.bn[wk] && WTR.bn[wk][0]);
   }
-  if (en) { h += line("Ayah – English", "", TR.en[key]) + fnBlock("en", key); ensureFN("en"); }
+  if (en) { h += line("Ayah – English", "", TR.en[key]) + fnBlock("en", key); ensureFN("en"); } if (bn2) h += line("আয়াত – বাংলা", "bn", TR.bn[key]);
   pop.innerHTML = "<button class='x' id='px' aria-label='Close'>×</button>" + h;
   pop.hidden = false; place();
 }

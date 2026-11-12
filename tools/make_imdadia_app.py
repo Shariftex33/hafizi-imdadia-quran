@@ -255,6 +255,13 @@ def main():
             "CFG.hafezi = true; CFG.imd = true; CFG.tahfiz = true; CFG.tj = false; CFG.glyphMark = false;\nfunction saveCfg(){")
     s = rep(s, '<script src="data/imdadia_lines.js"></script>',
             '<script src="data/imdadia_lines.js"></script><script src="data/imdadia_marks.js"></script>')
+    # Bangla translation of this book: Muhiuddin Khan (no footnotes), not the Tahfiz book's one
+    s = rep(s, '<script src="data/tr_bn.js"></script>', '<script src="data/tr_bn_khan.js"></script>')
+    s = rep(s, "function ensureFN(lang){", 'function ensureFN(lang){ if (lang === "bn") return;')
+    s = s.replace("Bangla – Dr. Abu Bakr Muhammad Zakaria, from", "Bangla – Maulana Muhiuddin Khan (Tanzil.net); English from")
+    s = rep(s, 'if (en) { h += line("Ayah – English", "", TR.en[key]) + fnBlock("en", key); ensureFN("en"); }',
+            'if (en) { h += line("Ayah – English", "", TR.en[key]) + fnBlock("en", key); ensureFN("en"); }'
+            ' if (bn2) h += line("আয়াত – বাংলা", "bn", TR.bn[key]);')
     s = rep(s, "</head>", CSS + "</head>")
     i = s.rindex("</body>")
     s = s[:i] + JS + s[i:]
