@@ -1,0 +1,9 @@
+/* ===== two-page view ===== */
+#imdSpread{align-self:stretch;display:flex;justify-content:center;align-items:flex-start;position:relative}
+body.imdonly.imdspread{--page-w:min(calc((100vw - 130px) / 2), calc((100dvh - 62px) / 1.68))}
+body.imdspread #imdSpread{perspective:2800px}
+body.imdspread #imdSpread .book{box-shadow:0 10px 28px rgba(60,40,10,.18)}
+body.imdspread #imdSpread .book.snap{cursor:pointer}
+body.imdspread #imdZoom{display:none}
+.imdflip{position:absolute;margin:0;pointer-events:none;backface-visibility:hidden;will-change:transform}
+@media (max-width:760px){body.imdonly.imdspread{--page-w:calc((100vw - 20px) / 2)}}

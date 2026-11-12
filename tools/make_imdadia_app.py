@@ -232,7 +232,7 @@ JS = r"""
   /* juz, quarter, half and three-quarter marks in the margin */
   var QTXT = { r:"الربع", n:"النصف", t:"الثلثة" };
   function marks(){
-    var old = document.querySelectorAll(".imdq"), i;
+    var old = book.querySelectorAll(".imdq"), i;
     for (i = 0; i < old.length; i++) old[i].remove();
     var P = PG[curPage - 1]; if (!P) return;
     var list = [], fr = document.querySelector(".frame").getBoundingClientRect(), edges = [$("edgeR"), $("edgeL")];
@@ -327,8 +327,12 @@ def main():
             'if (en) { h += line("Ayah – English", "", TR.en[key]) + fnBlock("en", key); ensureFN("en"); }'
             ' if (bn2) h += line("আয়াত – বাংলা", "bn", TR.bn[key]);')
     s = rep(s, "</head>", CSS + "</head>")
+    here = os.path.dirname(os.path.abspath(__file__))
+    css2 = open(os.path.join(here, "imdadia_spread.css"), encoding="utf-8").read()
+    js2 = open(os.path.join(here, "imdadia_spread.js"), encoding="utf-8").read()
+    s = rep(s, "</head>", "<style>" + chr(10) + css2 + "</style>" + chr(10) + "</head>")
     i = s.rindex("</body>")
-    s = s[:i] + JS + s[i:]
+    s = s[:i] + JS + "<script>" + chr(10) + js2 + "</script>" + chr(10) + s[i:]
     open(DST, "w", encoding="utf-8", newline="").write(s)
     print("wrote", DST, round(len(s) / 1024), "KB")
 
